@@ -98,7 +98,12 @@ class ModelEntry(ScheduleEntry):
         if not model.last_run_at:
             model.last_run_at = self._default_now()
 
-        self.last_run_at = model.last_run_at
+        last_run_at = model.last_run_at
+
+        if settings.DJANGO_CELERY_BEAT_TZ_AWARE:
+            last_run_at = make_aware(last_run_at)
+
+        self.last_run_at = last_run_at
 
     def _disable(self, model):
         model.no_changes = True
@@ -140,16 +145,12 @@ class ModelEntry(ScheduleEntry):
         return self.schedule.is_due(last_run_at_in_tz)
 
     def _default_now(self):
+        now = self.app.now()
         # The PyTZ datetime must be localised for the Django-Celery-Beat
         # scheduler to work. Keep in mind that timezone arithmatic
         # with a localized timezone may be inaccurate.
-        if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
-            now = self.app.now()
+        if settings.DJANGO_CELERY_BEAT_TZ_AWARE:
             now = now.tzinfo.localize(now.replace(tzinfo=None))
-        else:
-            # this ends up getting passed to maybe_make_aware, which expects
-            # all naive datetime objects to be in utc time.
-            now = datetime.datetime.utcnow()
         return now
 
     def __next__(self):
@@ -166,7 +167,7 @@ class ModelEntry(ScheduleEntry):
         for field in self.save_fields:
             setattr(obj, field, getattr(self.model, field))
 
-        if not getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
+        if not settings.DJANGO_CELERY_BEAT_TZ_AWARE:
             obj.last_run_at = datetime.datetime.now()
 
         obj.save()
