@@ -10,7 +10,7 @@ import re
 
 from collections import namedtuple
 
-__version__ = '1.3.0+singleplatform.2'
+__version__ = '1.3.0+singleplatform.3'
 __author__ = 'Asif Saif Uddin, Ask Solem'
 __contact__ = 'auvipy@gmail.com, ask@celeryproject.org'
 __homepage__ = 'https://github.com/celery/django-celery-beat'
