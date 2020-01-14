@@ -27,6 +27,7 @@ from .models import (
     SolarSchedule, ClockedSchedule
 )
 from .clockedschedule import clocked
+from .utils import make_aware
 
 try:
     from celery.utils.time import is_naive
